@@ -28,6 +28,7 @@ frontend/.vite/
 *.db
 *.sqlite
 data/*.csv
+!data/sample_transactions.csv  # generated fixture — safe to commit
 ml/models/*.pkl
 ml/models/*.joblib
 ml/models/*.h5
