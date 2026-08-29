@@ -25,9 +25,9 @@ frontend/dist/
 frontend/.vite/
 
 # ─── Data & ML ───────────────────────────────────────────────────────────────
+*.db
+*.sqlite
 data/*.csv
-data/*.db
-data/*.sqlite
 ml/models/*.pkl
 ml/models/*.joblib
 ml/models/*.h5
