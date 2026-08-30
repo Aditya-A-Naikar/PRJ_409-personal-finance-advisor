@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, admin_auth, transactions
+from app.routers import auth, admin_auth, transactions, recurring
 
 app = FastAPI(
     title="PRJ_409 Personal Finance Advisor",
     description="Backend API for the personal finance advisor application.",
-    version="0.3.0",
+    version="0.4.0",
 )
 
 app.add_middleware(
@@ -20,6 +20,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(admin_auth.router, prefix="/api/admin", tags=["admin-auth"])
 app.include_router(transactions.router, prefix="/api/transactions", tags=["transactions"])
+app.include_router(recurring.router, prefix="/api/recurring", tags=["recurring"])
 
 
 @app.get("/api/health", tags=["system"])
