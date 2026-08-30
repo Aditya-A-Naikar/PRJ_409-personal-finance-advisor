@@ -5,7 +5,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.security import create_access_token, hash_password, verify_password
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import TokenResponse, UserLogin, UserOut, UserRegister
+from app.schemas.user import TokenResponse, UserIncomeUpdate, UserLogin, UserOut, UserRegister
 
 router = APIRouter()
 
@@ -57,4 +57,22 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 def get_me(current=Depends(get_current_user)):
     if isinstance(current, dict):
         raise HTTPException(status_code=400, detail="Admin has no user profile")
+    return current
+
+
+@router.patch("/me", response_model=UserOut)
+def update_income(
+    payload: UserIncomeUpdate,
+    current=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Let a user update their monthly income so budget/goal/affordability
+    calculations have a realistic baseline."""
+    if isinstance(current, dict):
+        raise HTTPException(status_code=400, detail="Admin has no user profile")
+    if payload.monthly_income < 0:
+        raise HTTPException(status_code=400, detail="monthly_income cannot be negative")
+    current.monthly_income = payload.monthly_income
+    db.commit()
+    db.refresh(current)
     return current

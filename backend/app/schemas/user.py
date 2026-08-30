@@ -42,3 +42,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     role: str
     user: Optional[UserOut] = None
+
+
+class UserIncomeUpdate(BaseModel):
+    monthly_income: float
