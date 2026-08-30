@@ -30,6 +30,7 @@ frontend/.vite/
 data/*.csv
 !data/sample_transactions.csv  # generated fixture — safe to commit
 ml/models/*.pkl
+!ml/models/classifier.pkl     # trained model — committed as project artifact
 ml/models/*.joblib
 ml/models/*.h5
 ml/models/*.pt
