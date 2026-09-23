@@ -106,11 +106,23 @@ export default function Login() {
 
           {/* Demo hint */}
           <div className="mt-5 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5">
-            <p className="text-xs text-slate-500 font-medium mb-1">Demo credentials</p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-slate-500 font-medium">Demo credentials</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setUsername("demo_user");
+                  setPassword("Demo@123");
+                }}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                Auto-fill
+              </button>
+            </div>
             <p className="text-xs text-slate-600">
-              username: <code className="bg-slate-100 px-1 rounded">demo_user</code>
+              username: <code className="bg-slate-100 px-1 rounded text-slate-800">demo_user</code>
               &nbsp;·&nbsp;
-              password: <code className="bg-slate-100 px-1 rounded">Demo@123</code>
+              password: <code className="bg-slate-100 px-1 rounded text-slate-800">Demo@123</code>
             </p>
           </div>
         </div>
