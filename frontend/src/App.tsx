@@ -11,6 +11,8 @@ import Goals from "./pages/Goals";
 import Recurring from "./pages/Recurring";
 import Affordability from "./pages/Affordability";
 import Advisor from "./pages/Advisor";
+import Profile from "./pages/Profile";
+import Onboarding from "./pages/Onboarding";
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
 
           {/* Protected user routes */}
           <Route element={<ProtectedRoute role="USER" />}>
+            <Route path="/onboarding"    element={<Onboarding />} />
             <Route element={<UserLayout />}>
               <Route path="/dashboard"     element={<Dashboard />} />
               <Route path="/transactions"  element={<Transactions />} />
@@ -31,6 +34,7 @@ function App() {
               <Route path="/recurring"     element={<Recurring />} />
               <Route path="/affordability" element={<Affordability />} />
               <Route path="/advisor"       element={<Advisor />} />
+              <Route path="/profile"       element={<Profile />} />
             </Route>
           </Route>
 

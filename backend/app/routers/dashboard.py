@@ -44,7 +44,8 @@ def get_dashboard(
     # ── Totals ──────────────────────────────────────────────────────────────
     total_income = sum(t.amount for t in transactions if t.transaction_type == "income")
     total_expense = sum(t.amount for t in transactions if t.transaction_type == "expense")
-    total_balance = round(total_income - total_expense, 2)
+    effective_income = total_income if total_income > 0 else (current_user.monthly_income or 0.0)
+    total_balance = round(effective_income - total_expense, 2)
 
     current_month = latest_month_key(transactions)
     cat_totals = monthly_category_totals(transactions)
@@ -56,7 +57,8 @@ def get_dashboard(
             key = f"{t.date.year:04d}-{t.date.month:02d}"
             income_totals[key] = income_totals.get(key, 0.0) + t.amount
 
-    monthly_income = round(income_totals.get(current_month, 0.0), 2) if current_month else 0.0
+    tx_income = round(income_totals.get(current_month, 0.0), 2) if current_month else 0.0
+    monthly_income = tx_income if tx_income > 0 else round(current_user.monthly_income or 0.0, 2)
     monthly_expenses = round(expense_totals.get(current_month, 0.0), 2) if current_month else 0.0
     savings = round(monthly_income - monthly_expenses, 2)
 

@@ -24,7 +24,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form);
-      navigate("/dashboard");
+      navigate("/onboarding");
     } catch (err: any) {
       setError(err.response?.data?.detail ?? "Registration failed.");
     } finally {

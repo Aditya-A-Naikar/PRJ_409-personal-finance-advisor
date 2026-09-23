@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Calculator,
   MessageCircle,
+  User as UserIcon,
   LogOut,
   Wallet,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { to: "/recurring",      label: "Recurring Costs", icon: TrendingUp },
   { to: "/affordability",  label: "Affordability",   icon: Calculator },
   { to: "/advisor",        label: "AI Advisor",      icon: MessageCircle },
+  { to: "/profile",        label: "Profile & Income",icon: UserIcon },
 ];
 
 export default function UserLayout() {
@@ -44,7 +46,7 @@ export default function UserLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-blue-50 text-blue-700"
+                    ? "bg-blue-50 text-blue-700 font-semibold"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`
               }
@@ -55,8 +57,17 @@ export default function UserLayout() {
           ))}
         </nav>
 
-        <div className="border-t border-slate-200 pt-4 mt-4">
-          <p className="text-xs text-slate-400 px-3 mb-2 truncate">{user?.name}</p>
+        <div className="border-t border-slate-200 pt-4 mt-4 space-y-1">
+          <NavLink
+            to="/profile"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 transition truncate"
+            title="View Profile"
+          >
+            <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+              {user?.name ? user.name[0].toUpperCase() : "U"}
+            </div>
+            <span className="truncate font-medium">{user?.name || "My Account"}</span>
+          </NavLink>
           <button
             onClick={logout}
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 w-full transition-colors"

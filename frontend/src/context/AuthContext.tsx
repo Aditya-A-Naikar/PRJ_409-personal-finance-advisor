@@ -16,6 +16,8 @@ interface AuthContextType {
   role: string | null;
   user: User | null;
   loading: boolean;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  refreshUser: () => Promise<void>;
   login: (username: string, password: string) => Promise<void>;
   register: (payload: {
     name: string;
@@ -34,12 +36,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      setUser(res.data);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     if (token && role === "USER") {
-      api
-        .get("/auth/me")
-        .then((res) => setUser(res.data))
-        .catch(() => {});
+      refreshUser();
     }
     setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,7 +85,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, role, user, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        token,
+        role,
+        user,
+        loading,
+        setUser,
+        refreshUser,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -31,7 +31,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   Target,
+  ArrowRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import api from "../services/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -164,6 +166,32 @@ export default function Dashboard() {
             : "No transaction data yet"}
         </p>
       </div>
+
+      {/* ── New account banner if no transactions ── */}
+      {!data.month && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-semibold text-slate-800 text-base">Welcome to your financial dashboard! 🎉</h3>
+            <p className="text-sm text-slate-600 mt-1">
+              Your account is all set up. Add your first transaction or upload a bank statement CSV to populate charts, budget analysis, and AI financial recommendations.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/profile"
+              className="px-3.5 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-medium transition"
+            >
+              Set Income
+            </Link>
+            <Link
+              to="/transactions"
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-1.5 transition"
+            >
+              Add Transactions <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ── Summary cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
