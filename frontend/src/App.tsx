@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserLayout from "./layouts/UserLayout";
 import Dashboard from "./pages/Dashboard";
+import Transactions from "./pages/Transactions";
 import Placeholder from "./pages/Placeholder";
 
 function App() {
@@ -20,7 +21,7 @@ function App() {
           <Route element={<ProtectedRoute role="USER" />}>
             <Route element={<UserLayout />}>
               <Route path="/dashboard"     element={<Dashboard />} />
-              <Route path="/transactions"  element={<Placeholder title="Transactions" />} />
+              <Route path="/transactions"  element={<Transactions />} />
               <Route path="/budget"        element={<Placeholder title="Budget" />} />
               <Route path="/goals"         element={<Placeholder title="Goals" />} />
               <Route path="/recurring"     element={<Placeholder title="Recurring Costs" />} />
