@@ -7,7 +7,10 @@ import UserLayout from "./layouts/UserLayout";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Budget from "./pages/Budget";
-import Placeholder from "./pages/Placeholder";
+import Goals from "./pages/Goals";
+import Recurring from "./pages/Recurring";
+import Affordability from "./pages/Affordability";
+import Advisor from "./pages/Advisor";
 
 function App() {
   return (
@@ -24,10 +27,10 @@ function App() {
               <Route path="/dashboard"     element={<Dashboard />} />
               <Route path="/transactions"  element={<Transactions />} />
               <Route path="/budget"        element={<Budget />} />
-              <Route path="/goals"         element={<Placeholder title="Goals" />} />
-              <Route path="/recurring"     element={<Placeholder title="Recurring Costs" />} />
-              <Route path="/affordability" element={<Placeholder title="Affordability" />} />
-              <Route path="/advisor"       element={<Placeholder title="AI Advisor" />} />
+              <Route path="/goals"         element={<Goals />} />
+              <Route path="/recurring"     element={<Recurring />} />
+              <Route path="/affordability" element={<Affordability />} />
+              <Route path="/advisor"       element={<Advisor />} />
             </Route>
           </Route>
 
