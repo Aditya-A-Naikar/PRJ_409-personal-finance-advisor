@@ -25,77 +25,150 @@ interface Message {
 const fmt = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 
 function buildAdvisorReply(question: string, d: DashboardInsights): string {
-  const q = question.toLowerCase();
+
+
+  const q = question.toLowerCase().trim();
   const savingsRate = d.monthly_income > 0 ? ((d.savings / d.monthly_income) * 100).toFixed(1) : "0";
   const overspending = d.budget_status.filter(b => b.status === "overspending");
-  const onTrack = d.budget_status.filter(b => b.status === "on_track");
+  const onTrack     = d.budget_status.filter(b => b.status === "on_track");
+  const disposable  = d.monthly_income - d.monthly_expenses;
 
-  // Savings
-  if (q.includes("sav") || q.includes("save")) {
+  const has = (...words: string[]) => words.some(w => q.includes(w));
+
+  // ── Greetings ──────────────────────────────────────────────────────────────
+  if (has("hi", "hello", "hey", "hii", "helo", "namaste", "good morning", "good evening", "good night", "sup", "yo")) {
+    return `Hi there! 👋 I'm your AI Financial Advisor, and I have full context of your finances.\n\nHere's where you stand right now:\n• Monthly income: ${fmt.format(d.monthly_income)}\n• Monthly expenses: ${fmt.format(d.monthly_expenses)}\n• Net savings: ${fmt.format(d.savings)} (${savingsRate}%)\n• Net balance: ${fmt.format(d.total_balance)}\n${overspending.length > 0 ? `\n⚠️ You're currently overspending in: ${overspending.map(o => o.category).join(", ")}` : "\n✅ All budget categories are on track!"}\n\nWhat would you like to know? Ask me about savings, budget, goals, a purchase you're considering, or anything finance-related!`;
+  }
+
+  // ── Thanks / goodbye ───────────────────────────────────────────────────────
+  if (has("thank", "thanks", "bye", "goodbye", "ok thanks", "great", "awesome", "nice", "cool", "perfect")) {
+    return `You're welcome! 😊 Feel free to ask anytime — I'm always here with your financial data loaded. A quick reminder: your savings rate is ${savingsRate}%, and ${overspending.length > 0 ? `you have ${overspending.length} overspending category${overspending.length > 1 ? "s" : ""} to watch` : "all categories are on track"}. Keep it up! 💪`;
+  }
+
+  // ── Purchase intent ("want to buy", "should I buy", "can I afford") ────────
+  const purchaseKeywords = ["want to buy", "should i buy", "i want to buy", "thinking of buying", "planning to buy", "can i buy", "afford", "purchase", "buy a", "get a", "phone", "laptop", "bike", "car", "tv", "iphone", "macbook", "camera", "watch", "gadget", "trip", "vacation", "holiday", "flight", "travel", "clothes", "furniture", "rent a"];
+  if (has(...purchaseKeywords)) {
+    // Try to extract an amount from the question
+    const amountMatch = question.match(/[₹rs.\s]*(\d[\d,]*)/i);
+    const amount = amountMatch ? parseInt(amountMatch[1].replace(/,/g, "")) : null;
+
+    // Try to identify the item
+    const items = ["phone", "laptop", "macbook", "iphone", "bike", "car", "tv", "camera", "watch", "trip", "vacation", "flight", "furniture", "gadget", "clothes"];
+    const item  = items.find(i => q.includes(i)) ?? "item";
+
+    if (amount) {
+      const canAfford = amount <= disposable;
+      const pct       = disposable > 0 ? ((amount / disposable) * 100).toFixed(0) : "N/A";
+      return `${canAfford ? "✅ Looks affordable!" : "⚠️ That might be a stretch."}\n\n📊 Quick affordability check for "${item}" at ${fmt.format(amount)}:\n• Your monthly disposable income: ${fmt.format(disposable)}\n• This purchase is ${pct}% of your disposable income\n• Available after purchase: ${fmt.format(disposable - amount)}\n\n${canAfford
+        ? `Since it's within your disposable income, you can consider this — but make sure it won't impact your goal commitments. Use the Affordability Checker page for a full analysis including your safety buffer.`
+        : `This exceeds your monthly disposable income. You'd need to save up over ${Math.ceil(amount / (disposable > 0 ? disposable : 1))} months. Use the Affordability Checker page for a detailed breakdown.`}`;
+    }
+
+    return `Great question! Before buying that ${item}, here's your financial snapshot:\n• Monthly disposable income: ${fmt.format(disposable)}\n• Current savings: ${fmt.format(d.savings)}/mo (${savingsRate}%)\n\nFor a precise affordability answer including your safety buffer and goal commitments, head to the **Affordability Checker** page and enter the purchase amount. It will instantly tell you if it's affordable with a full breakdown.`;
+  }
+
+  // ── Savings ────────────────────────────────────────────────────────────────
+  if (has("sav", "save", "saving", "piggy", "how much do i save")) {
     const rate = parseFloat(savingsRate);
-    if (rate >= 20) return `Great job! Your current savings rate is ${savingsRate}% (${fmt.format(d.savings)}/mo). Financial advisors recommend 20%+, and you're already there. Consider channelling the surplus into long-term goals or an index fund SIP.`;
-    if (rate >= 10) return `Your savings rate is ${savingsRate}% (${fmt.format(d.savings)}/mo) — decent, but there's room to improve. Review your top expense categories and try to push past the 20% mark.`;
-    return `Your savings rate is only ${savingsRate}% (${fmt.format(d.savings)}/mo). That's below the recommended 20%. Start by trimming ${overspending.length > 0 ? overspending.map(o => o.category).slice(0, 2).join(" and ") : "discretionary"} spend.`;
+    if (rate >= 20) return `🎉 Excellent savings discipline! Your savings rate is ${savingsRate}% — ${fmt.format(d.savings)}/mo. Financial advisors recommend 20%+, and you're already there.\n\nSuggestion: Channel the surplus into a SIP or index fund to beat inflation. If you have active goals, you could accelerate them too.`;
+    if (rate >= 10) return `📈 Your savings rate is ${savingsRate}% (${fmt.format(d.savings)}/mo) — decent, but there's room to improve.\n\nTo reach the recommended 20%:\n• You'd need to save an extra ${fmt.format(d.monthly_income * 0.2 - d.savings)}/mo\n• Focus on trimming: ${overspending.length > 0 ? overspending.map(o => o.category).slice(0, 2).join(", ") : "discretionary categories"}`;
+    return `⚠️ Your savings rate is only ${savingsRate}% (${fmt.format(d.savings)}/mo) — below the recommended 20%.\n\nAction plan:\n1. Target 20% = ${fmt.format(d.monthly_income * 0.2)}/mo\n2. Gap to close: ${fmt.format(d.monthly_income * 0.2 - d.savings)}/mo\n3. Biggest overspend: ${overspending.length > 0 ? `${overspending[0].category} (${fmt.format(overspending[0].actual_amount - overspending[0].recommended_amount)} over budget)` : "no major overspend detected"}`;
   }
 
-  // Budget / overspending
-  if (q.includes("budget") || q.includes("oversp") || q.includes("spend")) {
-    if (overspending.length === 0) return `Your budget is healthy — all ${d.budget_status.length} tracked categories are on track or under budget this month. Keep it up!`;
-    const cats = overspending.map(o => `${o.category} (${fmt.format(o.actual_amount)} vs ${fmt.format(o.recommended_amount)} budget)`).join(", ");
-    return `You are overspending in ${overspending.length} category${overspending.length > 1 ? "s" : ""}: ${cats}. These are areas where cutting back will have the most impact on your savings rate.`;
+  // ── Budget / overspending ──────────────────────────────────────────────────
+  if (has("budget", "oversp", "over budget", "categories", "on track", "under budget", "where am i spending", "where is my money")) {
+    if (d.budget_status.length === 0) return "No budget has been generated yet. Go to the Budget page and click 'Recompute Budget' to generate recommendations from your transaction history.";
+    if (overspending.length === 0) return `✅ Your budget is perfectly healthy! All ${d.budget_status.length} tracked categories are on track or under budget.\n\nTop categories:\n${onTrack.slice(0, 3).map(o => `• ${o.category}: ${fmt.format(o.actual_amount)} of ${fmt.format(o.recommended_amount)} budget`).join("\n")}`;
+    const catLines = overspending.map(o => `• ${o.category}: spent ${fmt.format(o.actual_amount)} vs ${fmt.format(o.recommended_amount)} budget (${fmt.format(o.actual_amount - o.recommended_amount)} over)`).join("\n");
+    return `⚠️ You're overspending in ${overspending.length} category${overspending.length > 1 ? "s" : ""}:\n${catLines}\n\nCutting these down to budget would free up ${fmt.format(overspending.reduce((s, o) => s + o.actual_amount - o.recommended_amount, 0))}/mo and boost your savings rate to ${((d.savings + overspending.reduce((s,o) => s + o.actual_amount - o.recommended_amount, 0)) / d.monthly_income * 100).toFixed(1)}%.`;
   }
 
-  // Income / expenses
-  if (q.includes("income") || q.includes("earn")) {
-    return `Your monthly income stands at ${fmt.format(d.monthly_income)}. After avg monthly expenses of ${fmt.format(d.monthly_expenses)}, your net savings is ${fmt.format(d.savings)} (${savingsRate}% savings rate).`;
+  // ── Specific category queries ──────────────────────────────────────────────
+  const categoryMap: Record<string, string[]> = {
+    Food:          ["food", "eating", "restaurant", "zomato", "swiggy", "groceries", "lunch", "dinner", "breakfast", "meal"],
+    Shopping:      ["shopping", "amazon", "flipkart", "clothes", "fashion", "retail"],
+    Transport:     ["transport", "travel", "uber", "ola", "fuel", "petrol", "commute", "cab"],
+    Subscription:  ["subscription", "netflix", "spotify", "streaming", "ott", "prime"],
+    Utilities:     ["utilities", "electricity", "water", "internet", "bill"],
+    Rent:          ["rent", "house", "apartment", "flat", "landlord"],
+    EMI:           ["emi", "loan", "equated"],
+    Healthcare:    ["health", "medical", "doctor", "medicine", "hospital", "pharmacy"],
+    Entertainment: ["entertainment", "movie", "gaming", "party", "outing"],
+    Education:     ["education", "course", "class", "learning", "book", "school", "college"],
+  };
+  for (const [cat, keywords] of Object.entries(categoryMap)) {
+    if (has(...keywords)) {
+      const budget  = d.budget_status.find(b => b.category === cat);
+      if (budget) {
+        const diff   = budget.actual_amount - budget.recommended_amount;
+        const status = diff > 0 ? `⚠️ ${fmt.format(diff)} over budget` : `✅ ${fmt.format(-diff)} under budget`;
+        return `${cat} spending breakdown:\n• Spent this month: ${fmt.format(budget.actual_amount)}\n• Budget recommendation: ${fmt.format(budget.recommended_amount)}\n• Status: ${status}\n\n${diff > 0 ? `Cutting ${cat} spend to your budget would save you ${fmt.format(diff)}/mo.` : `You're managing ${cat} spend well — keep it up!`}`;
+      }
+      return `I don't have specific budget data for ${cat} yet. Go to the Budget page and click 'Recompute Budget' to generate category-level recommendations.`;
+    }
   }
 
-  if (q.includes("expens") || q.includes("cost")) {
-    return `Your average monthly expenses are ${fmt.format(d.monthly_expenses)}. That is ${d.monthly_income > 0 ? ((d.monthly_expenses / d.monthly_income) * 100).toFixed(0) : "N/A"}% of your income. ${overspending.length > 0 ? `Categories in the red: ${overspending.map(o => o.category).join(", ")}.` : "All categories are within budget."}`;
+  // ── Income ─────────────────────────────────────────────────────────────────
+  if (has("income", "earn", "salary", "how much do i make", "how much i earn")) {
+    return `💰 Income summary:\n• Monthly income: ${fmt.format(d.monthly_income)}\n• Monthly expenses: ${fmt.format(d.monthly_expenses)} (${d.monthly_income > 0 ? ((d.monthly_expenses / d.monthly_income) * 100).toFixed(0) : "N/A"}% of income)\n• Disposable income: ${fmt.format(disposable)}\n• Net savings rate: ${savingsRate}%`;
   }
 
-  // Goals
-  if (q.includes("goal") || q.includes("target") || q.includes("plan")) {
-    return `Head to the Goals page to view your active savings targets. The feasibility engine checks whether your disposable income (${fmt.format(d.monthly_income - d.monthly_expenses)}/mo) covers your monthly goal commitments. If a goal is marked "Not Feasible", consider extending the deadline or reducing other expenses.`;
+  // ── Expenses ───────────────────────────────────────────────────────────────
+  if (has("expens", "spending", "how much i spend", "outgoings", "outflow", "monthly cost")) {
+    return `📊 Monthly expense breakdown:\n• Total expenses: ${fmt.format(d.monthly_expenses)} (${d.monthly_income > 0 ? ((d.monthly_expenses / d.monthly_income) * 100).toFixed(0) : "N/A"}% of income)\n• Categories over budget: ${overspending.length}\n• Biggest overspend: ${overspending.length > 0 ? `${overspending[0].category} by ${fmt.format(overspending[0].actual_amount - overspending[0].recommended_amount)}` : "None — all good!"}\n\nFor full details, visit the Budget and Transactions pages.`;
   }
 
-  // Balance
-  if (q.includes("balanc") || q.includes("net worth") || q.includes("wealth")) {
-    return `Your current net transaction balance is ${fmt.format(d.total_balance)} (cumulative income minus all expenses recorded). Monthly net: ${fmt.format(d.savings)}.`;
+  // ── Goals ──────────────────────────────────────────────────────────────────
+  if (has("goal", "target", "dream", "saving for", "emergency fund", "holiday fund")) {
+    const di = fmt.format(disposable);
+    return `🎯 Goals & feasibility:\nYour disposable income (after expenses) is ${di}/mo. The Goals page checks if this covers your monthly goal commitments.\n\nTips:\n• If a goal is "Not Feasible", extend the deadline or reduce expenses\n• If it's "Tight", consider pausing lower-priority goals\n• Run the Affordability Checker before making large purchases that compete with your goals`;
   }
 
-  // Advice / general
-  if (q.includes("advi") || q.includes("tip") || q.includes("how") || q.includes("help") || q.includes("suggest")) {
+  // ── Balance / net worth ────────────────────────────────────────────────────
+  if (has("balanc", "net worth", "wealth", "total", "how much money", "how much do i have")) {
+    return `🏦 Your financial position:\n• Net transaction balance: ${fmt.format(d.total_balance)} (cumulative income − all expenses)\n• Monthly net: +${fmt.format(d.savings)}\n• Savings rate: ${savingsRate}%\n\n${d.total_balance > 0 ? "You're in the positive — great position to start or accelerate your goals!" : "Your balance is negative — focus on reducing expenses to turn this around."}`;
+  }
+
+  // ── Advice / tips ──────────────────────────────────────────────────────────
+  if (has("advi", "tip", "suggest", "help me", "what should", "how can i", "how do i", "improve", "better")) {
     const tips: string[] = [];
-    if (parseFloat(savingsRate) < 20) tips.push(`Increase your savings rate from ${savingsRate}% to 20%+`);
-    if (overspending.length > 0) tips.push(`Reduce ${overspending[0].category} spend by ${fmt.format(overspending[0].actual_amount - overspending[0].recommended_amount)}`);
-    if (onTrack.length > 0) tips.push(`Maintain ${onTrack[0].category} spend — it's on track`);
-    tips.push("Run the drift analysis on the Recurring Costs page to catch silent price creep");
+    const rate = parseFloat(savingsRate);
+    if (rate < 20) tips.push(`Boost your savings rate from ${savingsRate}% → 20% (need ${fmt.format(d.monthly_income * 0.2 - d.savings)} more/mo)`);
+    if (overspending.length > 0) tips.push(`Cut ${overspending[0].category} by ${fmt.format(overspending[0].actual_amount - overspending[0].recommended_amount)} to match budget`);
+    if (onTrack.length > 0)      tips.push(`Keep ${onTrack[0].category} spend on track — it's at budget`);
+    tips.push("Run Drift Analysis on Recurring Costs to catch silent price creep");
     tips.push("Use the Affordability Checker before any large purchase");
-    return `Here are your top personalised tips:\n${tips.map((t, i) => `${i + 1}. ${t}.`).join("\n")}`;
+    tips.push("Review your goals on the Goals page and check feasibility status");
+    return `💡 Your personalised action plan:\n${tips.map((t, i) => `${i + 1}. ${t}`).join("\n")}`;
   }
 
-  // Insights from dashboard
-  if (q.includes("insight") || q.includes("summary") || q.includes("overview")) {
-    if (d.insights.length === 0) return "No automatic insights were generated this month — your finances look stable.";
-    return `Auto-generated insights this month:\n${d.insights.map((ins, i) => `${i + 1}. ${ins}`).join("\n")}`;
+  // ── Insights / summary ─────────────────────────────────────────────────────
+  if (has("insight", "summary", "overview", "report", "monthly report", "how am i doing", "doing")) {
+    const insightText = d.insights.length > 0
+      ? d.insights.map((ins, i) => `${i + 1}. ${ins}`).join("\n")
+      : "No specific alerts this month — your finances look stable!";
+    return `📋 Monthly financial summary:\n• Income: ${fmt.format(d.monthly_income)}\n• Expenses: ${fmt.format(d.monthly_expenses)}\n• Savings: ${fmt.format(d.savings)} (${savingsRate}%)\n• Balance: ${fmt.format(d.total_balance)}\n• Over-budget categories: ${overspending.length}\n\n🔍 Auto-insights:\n${insightText}`;
   }
 
-  // Recurring
-  if (q.includes("subscri") || q.includes("recurr") || q.includes("drift")) {
-    return "Visit the Recurring Costs page and run a Drift Analysis to detect subscriptions with price creep. The detector uses CoV-gated gap consistency and a composite drift score (magnitude × consistency × monotonic) to flag outliers.";
+  // ── Recurring / subscriptions ──────────────────────────────────────────────
+  if (has("subscri", "recurr", "drift", "netflix", "price creep", "hidden cost", "monthly charge")) {
+    return "🔁 Recurring costs are auto-detected from your transaction history using a gap-consistency algorithm.\n\nHow to use it:\n1. Go to the Recurring Costs page\n2. Click 'Run Drift Analysis'\n3. Review cards sorted by drift score — High severity ones need attention\n\nThe drift score combines price magnitude, consistency of increase, and monotonic growth to flag subscriptions quietly raising prices.";
   }
 
-  // Fallback — general contextual reply
-  return `Based on your current data: income ${fmt.format(d.monthly_income)}/mo, expenses ${fmt.format(d.monthly_expenses)}/mo, savings ${fmt.format(d.savings)}/mo (${savingsRate}%). ${d.insights.length > 0 ? `Key insight: ${d.insights[0]}` : "Your finances are stable."} Ask me about savings, budget, goals, or expenses for detailed advice.`;
+  // ── Fallback — smarter contextual reply ────────────────────────────────────
+  const rate = parseFloat(savingsRate);
+  const healthEmoji = rate >= 20 ? "🟢" : rate >= 10 ? "🟡" : "🔴";
+  return `${healthEmoji} I'm not sure I understood that exactly, but here's your current snapshot:\n• Income: ${fmt.format(d.monthly_income)}/mo · Expenses: ${fmt.format(d.monthly_expenses)}/mo\n• Savings: ${fmt.format(d.savings)}/mo (${savingsRate}%)\n${overspending.length > 0 ? `• ⚠️ Overspending in: ${overspending.map(o => o.category).join(", ")}` : "• ✅ All categories on track"}\n\nTry asking:\n• "How is my savings rate?"\n• "I want to buy a ₹30,000 laptop — can I afford it?"\n• "Which categories am I overspending in?"\n• "Give me your top tips"\n• "What are my key insights?"`;
 }
 
 const SUGGESTED_QUESTIONS = [
   "How is my savings rate?",
+  "I want to buy a new phone — can I afford it?",
   "Which categories am I overspending in?",
   "Give me your top tips to improve my finances",
   "What are my key insights this month?",
-  "Can I afford a ₹50,000 purchase?",
+  "How much do I spend on food?",
+  "What is my net balance?",
   "How are my goals looking?",
 ];
 
