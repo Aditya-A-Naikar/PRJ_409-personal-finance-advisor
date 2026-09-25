@@ -31,11 +31,11 @@ export default function UserLayout() {
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
       <aside className="w-60 shrink-0 bg-white border-r border-slate-200 flex flex-col p-4">
-        <div className="flex items-center gap-2 px-2 mb-8">
-          <div className="bg-blue-600 text-white p-1.5 rounded-lg">
+        <div className="flex items-center gap-2.5 px-2 mb-8">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-1.5 rounded-xl shadow-sm shadow-blue-500/20">
             <Wallet size={18} />
           </div>
-          <span className="font-semibold text-slate-800">PRJ_409</span>
+          <span className="font-bold text-slate-900 text-lg tracking-tight">ArthaSense</span>
         </div>
 
         <nav className="flex-1 space-y-1">

@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, admin_auth, transactions, recurring, budget, goals, affordability, dashboard
 
 app = FastAPI(
-    title="PRJ_409 Personal Finance Advisor",
-    description="Backend API for the personal finance advisor application.",
-    version="0.6.0",
+    title="ArthaSense — AI Personal Finance Advisor",
+    description="Backend API for the ArthaSense intelligent personal finance application.",
+    version="1.0.0",
 )
 
 app.add_middleware(

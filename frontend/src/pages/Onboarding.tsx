@@ -70,11 +70,11 @@ export default function Onboarding() {
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm mb-4">
-            <div className="bg-blue-600 text-white p-1 rounded-full">
+          <div className="inline-flex items-center gap-2.5 bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm mb-4">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-1 rounded-full shadow-sm">
               <Wallet size={14} />
             </div>
-            <span className="font-semibold text-slate-800 text-sm">PRJ_409 Finance</span>
+            <span className="font-bold text-slate-900 text-sm tracking-tight">ArthaSense</span>
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
             Welcome{user?.name ? `, ${user.name.split(" ")[0]}` : ""}! 👋

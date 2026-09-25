@@ -30,11 +30,11 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="flex items-center gap-2 justify-center mb-8">
-          <div className="bg-blue-600 text-white p-2 rounded-xl shadow-sm">
+        <div className="flex items-center gap-2.5 justify-center mb-8">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-2 rounded-xl shadow-sm shadow-blue-500/20">
             <Wallet size={22} />
           </div>
-          <span className="font-bold text-slate-800 text-xl">PRJ_409 Finance</span>
+          <span className="font-bold text-slate-900 text-2xl tracking-tight">ArthaSense</span>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
