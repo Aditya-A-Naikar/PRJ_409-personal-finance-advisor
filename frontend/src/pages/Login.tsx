@@ -29,15 +29,15 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex flex-col items-center justify-center mb-8">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-2 rounded-xl shadow-sm shadow-blue-500/20">
-              <Wallet size={22} />
-            </div>
-            <span className="font-bold text-slate-900 text-2xl tracking-tight">ArthaSense</span>
+        {/* Logo & Tagline */}
+        <div className="flex items-center justify-center gap-3.5 mb-8">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-2.5 rounded-2xl shadow-sm shadow-blue-500/20 shrink-0">
+            <Wallet size={24} />
           </div>
-          <p className="text-xs font-medium text-slate-500 mt-1.5 tracking-wide">Making Sense of Every Rupee</p>
+          <div className="flex flex-col justify-center text-left">
+            <span className="font-bold text-slate-900 text-2xl tracking-tight leading-none">ArthaSense</span>
+            <span className="text-xs font-medium text-slate-500 mt-1.5 tracking-tight">Making Sense of Every Rupee</span>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
