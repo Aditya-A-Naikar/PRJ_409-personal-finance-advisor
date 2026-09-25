@@ -44,8 +44,7 @@ def get_dashboard(
     # ── Totals ──────────────────────────────────────────────────────────────
     total_income = sum(t.amount for t in transactions if t.transaction_type == "income")
     total_expense = sum(t.amount for t in transactions if t.transaction_type == "expense")
-    effective_income = total_income if total_income > 0 else (current_user.monthly_income or 0.0)
-    total_balance = round(effective_income - total_expense, 2)
+    user_declared = round(current_user.monthly_income or 0.0, 2)
 
     current_month = latest_month_key(transactions)
     cat_totals = monthly_category_totals(transactions)
@@ -58,9 +57,16 @@ def get_dashboard(
             income_totals[key] = income_totals.get(key, 0.0) + t.amount
 
     tx_income = round(income_totals.get(current_month, 0.0), 2) if current_month else 0.0
-    monthly_income = tx_income if tx_income > 0 else round(current_user.monthly_income or 0.0, 2)
+
+    # User's explicitly declared income from Profile takes top priority across the application
+    monthly_income = user_declared if user_declared > 0 else tx_income
     monthly_expenses = round(expense_totals.get(current_month, 0.0), 2) if current_month else 0.0
     savings = round(monthly_income - monthly_expenses, 2)
+
+    # Reflect updated income in total balance
+    income_delta = (monthly_income - tx_income) if (tx_income > 0 and user_declared > 0) else 0.0
+    effective_income = (total_income + income_delta) if total_income > 0 else monthly_income
+    total_balance = round(effective_income - total_expense, 2)
 
     # ── Category breakdown (current month, sorted by amount desc) ──────────
     category_breakdown = [
@@ -75,7 +81,7 @@ def get_dashboard(
     monthly_trend = [
         MonthTrend(
             month=m,
-            income=round(income_totals.get(m, 0.0), 2),
+            income=monthly_income if (m == current_month and user_declared > 0) else round(income_totals.get(m, 0.0), 2),
             expenses=round(expense_totals.get(m, 0.0), 2),
         )
         for m in all_months

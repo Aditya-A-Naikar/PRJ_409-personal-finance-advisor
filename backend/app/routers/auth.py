@@ -5,6 +5,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.security import create_access_token, hash_password, verify_password
 from app.database import get_db
 from app.models.user import User
+from app.models.transaction import Transaction
 from app.schemas.user import TokenResponse, UserIncomeUpdate, UserLogin, UserOut, UserRegister
 
 router = APIRouter()
@@ -73,6 +74,20 @@ def update_income(
     if payload.monthly_income < 0:
         raise HTTPException(status_code=400, detail="monthly_income cannot be negative")
     current.monthly_income = payload.monthly_income
+
+    # Synchronize the latest salary transaction so transaction history matches the updated income
+    latest_salary = (
+        db.query(Transaction)
+        .filter(
+            Transaction.user_id == current.id,
+            Transaction.transaction_type == "income",
+        )
+        .order_by(Transaction.date.desc())
+        .first()
+    )
+    if latest_salary:
+        latest_salary.amount = payload.monthly_income
+
     db.commit()
     db.refresh(current)
     return current

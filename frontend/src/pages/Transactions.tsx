@@ -35,7 +35,7 @@ const CATEGORIES = [
 ];
 
 const METHOD_BADGE: Record<string, string> = {
-  ml:   "bg-violet-100 text-violet-700",
+  ml: "bg-violet-100 text-violet-700",
   rule: "bg-blue-100 text-blue-700",
   "demo-seed": "bg-slate-100 text-slate-500",
 };
@@ -292,9 +292,8 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
           <div className="space-y-4">
             {/* Drop zone */}
             <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                dragging ? "border-blue-500 bg-blue-50" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50"
-              }`}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${dragging ? "border-blue-500 bg-blue-50" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50"
+                }`}
               onClick={() => inputRef.current?.click()}
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
@@ -448,11 +447,10 @@ export default function Transactions() {
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors capitalize ${
-                typeFilter === t
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors capitalize ${typeFilter === t
                   ? "bg-white text-slate-900 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
-              }`}
+                }`}
             >
               {t}
             </button>
@@ -474,9 +472,8 @@ export default function Transactions() {
                 <button
                   key={c}
                   onClick={() => { setCategory(c); setShowCatDropdown(false); }}
-                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                    category === c ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-700 hover:bg-slate-50"
-                  }`}
+                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${category === c ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-700 hover:bg-slate-50"
+                    }`}
                 >
                   {c}
                 </button>
@@ -525,9 +522,8 @@ export default function Transactions() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                          t.transaction_type === "income" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
-                        }`}>
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${t.transaction_type === "income" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                          }`}>
                           {t.merchant[0]?.toUpperCase() ?? "?"}
                         </div>
                         <div>
@@ -557,9 +553,8 @@ export default function Transactions() {
                         ) : (
                           <ArrowDownCircle size={14} className="text-rose-500 flex-shrink-0" />
                         )}
-                        <span className={`font-semibold tabular-nums ${
-                          t.transaction_type === "income" ? "text-emerald-700" : "text-slate-900"
-                        }`}>
+                        <span className={`font-semibold tabular-nums ${t.transaction_type === "income" ? "text-emerald-700" : "text-slate-900"
+                          }`}>
                           {fmt.format(t.amount)}
                         </span>
                       </div>

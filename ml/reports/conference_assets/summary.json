@@ -1,0 +1,50 @@
+{
+  "n_samples": 93,
+  "n_classes": 12,
+  "classes": [
+    "EMI",
+    "Education",
+    "Entertainment",
+    "Food",
+    "Healthcare",
+    "Other",
+    "Rent",
+    "Salary/Income",
+    "Shopping",
+    "Subscription",
+    "Transport",
+    "Utilities"
+  ],
+  "accuracy": 0.7368421052631579,
+  "macro_auc": 0.9579451019894234,
+  "comparison": [
+    {
+      "Model": "Multinomial Logistic Regression (Proposed)",
+      "Accuracy": 73.68421052631578,
+      "Precision": 69.92481203007517,
+      "Recall": 73.68421052631578,
+      "F1-Score": 69.12280701754386
+    },
+    {
+      "Model": "Multinomial Naive Bayes",
+      "Accuracy": 78.94736842105263,
+      "Precision": 69.12280701754386,
+      "Recall": 78.94736842105263,
+      "F1-Score": 72.89473684210526
+    },
+    {
+      "Model": "Random Forest Classifier",
+      "Accuracy": 57.89473684210527,
+      "Precision": 50.6265664160401,
+      "Recall": 57.89473684210527,
+      "F1-Score": 51.22807017543859
+    },
+    {
+      "Model": "Linear SVM (SGD)",
+      "Accuracy": 78.94736842105263,
+      "Precision": 77.19298245614034,
+      "Recall": 78.94736842105263,
+      "F1-Score": 76.84210526315789
+    }
+  ]
+}

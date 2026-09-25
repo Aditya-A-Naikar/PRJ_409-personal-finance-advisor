@@ -36,9 +36,18 @@ function buildAdvisorReply(question: string, d: DashboardInsights): string {
   const disposable     = Math.max(d.monthly_income - d.monthly_expenses, 0);
   const totalOverspend = overspending.reduce((s, o) => s + o.actual_amount - o.recommended_amount, 0);
 
-  const has = (...words: string[]) => words.some(w => q.includes(w));
+  const has = (...words: string[]) =>
+    words.some(w => {
+      const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (w.length <= 4) {
+        return new RegExp(`\\b${escaped}\\b`, "i").test(q);
+      }
+      return new RegExp(`\\b${escaped}`, "i").test(q);
+    });
 
   const extractAmount = (): number | null => {
+    const kMatch = question.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*k\b/i);
+    if (kMatch) return Math.round(parseFloat(kMatch[1]) * 1000);
     const m = question.match(/(?:₹|rs\.?|inr)?\s*(\d[\d,]*)/i);
     return m ? parseInt(m[1].replace(/,/g, "")) : null;
   };
@@ -48,21 +57,29 @@ function buildAdvisorReply(question: string, d: DashboardInsights): string {
     return items.find(i => q.includes(i)) ?? "this item";
   };
 
+  // Substantive financial topic check (prevents greetings from hijacking financial questions)
+  const hasSubstantiveTopic = has(
+    "emergency", "budget", "sav", "invest", "sip", "debt", "emi", "loan",
+    "tax", "inflation", "expense", "income", "salary", "goal", "balance",
+    "afford", "buy", "purchase", "spend", "drift", "recurring", "subscri",
+    "tip", "advi", "insight", "what if", "scenario", "status", "report", "health"
+  );
+
   // ════════════════════════════════════════════════════════════
-  // 1. GREETINGS
+  // 1. GREETINGS (Only if no specific financial question is asked)
   // ════════════════════════════════════════════════════════════
-  if (has("hi","hello","hey","hii","hiii","helo","heya","heyy","namaste","namaskar","good morning","good afternoon","good evening","good night","gm","ge","sup","yo","whats up","what's up","wassup","howdy","hola")) {
+  if (has("hi","hello","hey","hii","hiii","helo","heya","heyy","namaste","namaskar","good morning","good afternoon","good evening","good night","gm","ge","sup","yo","whats up","what's up","wassup","howdy","hola") && !hasSubstantiveTopic) {
     return `Hi there! 👋 I'm your AI Financial Advisor with full context of your finances.\n\n📊 Current snapshot:\n• Income: ${fmt.format(d.monthly_income)}/mo\n• Expenses: ${fmt.format(d.monthly_expenses)}/mo\n• Savings: ${fmt.format(d.savings)}/mo (${savingsRate}%)\n• Balance: ${fmt.format(d.total_balance)}\n${overspending.length > 0 ? `\n⚠️ Overspending in: ${overspending.map(o => o.category).join(", ")}` : "\n✅ All budget categories are healthy!"}\n\nAsk me anything — savings, budget, purchases, investments, debt, or financial planning!`;
   }
 
   // ════════════════════════════════════════════════════════════
-  // 2. THANKS / GOODBYE
+  // 2. THANKS / GOODBYE (Only if not asking a financial question)
   // ════════════════════════════════════════════════════════════
-  if (has("thank","thanks","ty","thx","thnks","tq","ok thanks","okay thanks","cheers","appreciate","great thanks")) {
+  if (has("thank","thanks","ty","thx","thnks","tq","ok thanks","okay thanks","cheers","appreciate","great thanks") && !hasSubstantiveTopic) {
     return `You're welcome! 😊 Your savings rate is ${savingsRate}% right now. ${rate < 20 ? `You're ${(20 - rate).toFixed(1)}% away from the recommended 20% — keep pushing! 💪` : "You're above the 20% target — excellent discipline! 🎉"}`;
   }
 
-  if (has("bye","goodbye","see you","see ya","later","cya","take care","good night","good bye","gtg")) {
+  if (has("bye","goodbye","see you","see ya","later","cya","take care","good night","good bye","gtg") && !hasSubstantiveTopic) {
     return `Goodbye! 👋 Remember: your savings rate is ${savingsRate}%. ${rate >= 20 ? "You're doing great — keep it up!" : "Try to inch it toward 20%. Every rupee saved counts!"} Come back anytime!`;
   }
 
@@ -108,9 +125,31 @@ function buildAdvisorReply(question: string, d: DashboardInsights): string {
   }
 
   // ════════════════════════════════════════════════════════════
-  // 6. SAVINGS
+  // 6. SAVINGS & SAVINGS TARGETS
   // ════════════════════════════════════════════════════════════
-  if (has("sav","piggy","how much do i save","how much am i saving","am i saving","saving enough","savings rate","save more","how to save","saving habit","should i save","saving money","save money","not saving","cant save","can't save")) {
+  if (has("sav","piggy","how much do i save","how much am i saving","am i saving","saving enough","savings rate","save more","how to save","saving habit","should i save","saving money","save money","not saving","cant save","can't save","target to save","want to save","plan to save")) {
+    const targetAmt = extractAmount();
+    if (targetAmt && targetAmt > 0) {
+      const maxAllowedExpense = Math.max(d.monthly_income - targetAmt, 0);
+      const currentSavings = d.savings;
+      const targetRate = d.monthly_income > 0 ? ((targetAmt / d.monthly_income) * 100).toFixed(1) : "0";
+
+      if (targetAmt > d.monthly_income && d.monthly_income > 0) {
+        return `❌ Goal exceeds income:\n\n• Target savings: ${fmt.format(targetAmt)}\n• Monthly income: ${fmt.format(d.monthly_income)}\n\nYou cannot save more than your total monthly income. Consider setting a longer-term milestone on the Goals page!`;
+      }
+
+      if (currentSavings >= targetAmt) {
+        const surplusOverTarget = currentSavings - targetAmt;
+        return `🎯 Target to save ${fmt.format(targetAmt)} this month:\n\n• Feasibility: ✅ Easily Achievable!\n• Target savings rate: ${targetRate}% of income\n• Your current monthly savings: ${fmt.format(currentSavings)}/mo\n• Safety cushion: ${fmt.format(surplusOverTarget)} above your target\n\n📋 Your Blueprint:\n• Monthly Income: ${fmt.format(d.monthly_income)}\n• Keep total expenses under: ${fmt.format(maxAllowedExpense)}\n• Your current expenses are running at ${fmt.format(d.monthly_expenses)} — you are already on track!\n\n💡 Pro-tip: Transfer the ${fmt.format(targetAmt)} into a separate savings or liquid fund on salary day so you don't accidentally spend it.`;
+      } else {
+        const gap = targetAmt - currentSavings;
+        const overspentNote = overspending.length > 0
+          ? `\n\n✂️ Where to cut first:\n${overspending.slice(0, 3).map(o => `• Trim ${o.category}: currently ${fmt.format(o.actual_amount)} (recommended ${fmt.format(o.recommended_amount)})`).join("\n")}`
+          : "";
+        return `🎯 Target to save ${fmt.format(targetAmt)} this month:\n\n• Feasibility: ⚠️ Achievable with spending adjustments\n• Target savings rate: ${targetRate}% of income\n• Your baseline savings: ${fmt.format(currentSavings)}/mo\n• Extra savings needed: ${fmt.format(gap)} more this month\n\n📋 Your Action Plan:\n• Monthly income: ${fmt.format(d.monthly_income)}\n• Max expenses allowed to hit target: ${fmt.format(maxAllowedExpense)}/mo\n• Current spending run-rate: ${fmt.format(d.monthly_expenses)}/mo (exceeds cap by ${fmt.format(gap)})${overspentNote}\n\n💡 If you trim ${fmt.format(gap)} from discretionary spending, you will hit your ${fmt.format(targetAmt)} target comfortably!`;
+      }
+    }
+
     if (rate >= 20) return `🎉 Excellent savings discipline!\n\n• Savings rate: ${savingsRate}% (${fmt.format(d.savings)}/mo)\n• Beating the 20% recommendation ✅\n\nNext steps:\n1. Channel surplus into a SIP / index fund (beat 6% inflation)\n2. Accelerate your goals on the Goals page\n3. Build emergency fund to ${fmt.format(d.monthly_expenses * 6)} (6 months)\n4. Consider NPS for tax-efficient retirement savings`;
     if (rate >= 10) return `📈 Savings rate: ${savingsRate}% (${fmt.format(d.savings)}/mo) — decent, room to grow.\n\nTo hit 20%:\n• Need ${fmt.format(d.monthly_income * 0.2 - d.savings)} more/mo\n• Cut: ${overspending.length > 0 ? overspending.slice(0,2).map(o=>o.category).join(" and ") : "discretionary spend"}\n• Automate savings on payday (pay yourself first)\n\n💡 ₹1,000 extra/mo at 12% CAGR = ₹${Math.round(1000 * ((Math.pow(1.01, 120) - 1) / 0.01)).toLocaleString("en-IN")} in 10 years!`;
     return `⚠️ Savings rate: ${savingsRate}% (${fmt.format(d.savings)}/mo) — below 20%.\n\nAction plan:\n1. 🎯 Target: ${fmt.format(d.monthly_income * 0.2)}/mo\n2. 📉 Gap: ${fmt.format(d.monthly_income * 0.2 - d.savings)}/mo to close\n3. 🔴 Biggest leak: ${overspending.length > 0 ? `${overspending[0].category} (${fmt.format(overspending[0].actual_amount - overspending[0].recommended_amount)} over)` : "No single major overspend"}\n4. 💡 Automate a standing instruction on salary day\n\nFix overspend → save ${fmt.format(totalOverspend)} more/mo immediately!`;
